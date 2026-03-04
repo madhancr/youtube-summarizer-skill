@@ -14,27 +14,25 @@ red()    { printf '\033[31m%s\033[0m\n' "$1"; }
 # ── Parse flags ─────────────────────────────────────────
 do_cc=false
 do_cd=false
-do_zip=false
-
-if [[ $# -eq 0 ]] ; then
-    do_cc=true; do_cd=true; do_zip=true
-fi
+do_uninstall=false
 
 for arg in "$@"; do
     case "$arg" in
         --claude-code)    do_cc=true ;;
         --claude-desktop) do_cd=true ;;
-        --chat-zip)       do_zip=true ;;
-        --all)            do_cc=true; do_cd=true; do_zip=true ;;
+        --all)            do_cc=true; do_cd=true ;;
+        --uninstall)      do_uninstall=true ;;
         -h|--help)
             echo "Usage: ./install.sh [OPTIONS]"
             echo ""
-            echo "Options (default: all three):"
-            echo "  --claude-code      Install as Claude Code skill (symlink)"
-            echo "  --claude-desktop   Install as Claude Desktop MCP server"
-            echo "  --chat-zip         Create zip for Claude Desktop Chat tab"
-            echo "  --all              All of the above (same as no args)"
+            echo "Options:"
+            echo "  --claude-code      Claude Code skill"
+            echo "  --claude-desktop   Claude Desktop Chat tab (MCP server + zip)"
+            echo "  --all              Both of the above"
+            echo "  --uninstall        Remove all installations"
             echo "  -h, --help         Show this help"
+            echo ""
+            echo "With no flags, an interactive menu is shown."
             exit 0
             ;;
         *)
@@ -43,6 +41,84 @@ for arg in "$@"; do
             ;;
     esac
 done
+
+# ── Uninstall ──────────────────────────────────────────
+if $do_uninstall; then
+    echo ""
+    echo "▸ Uninstalling youtube-summarizer"
+
+    # Remove skill symlink
+    if [[ -L "$SYMLINK_PATH" ]]; then
+        rm "$SYMLINK_PATH"
+        green "  ✓ Removed symlink $SYMLINK_PATH"
+    elif [[ -e "$SYMLINK_PATH" ]]; then
+        red "  ✗ $SYMLINK_PATH exists but is not a symlink. Remove it manually."
+    else
+        echo "  · No symlink found at $SYMLINK_PATH"
+    fi
+
+    # Remove MCP server from Claude Desktop config
+    case "$(uname -s)" in
+        Darwin) cd_config="$HOME/Library/Application Support/Claude/claude_desktop_config.json" ;;
+        Linux)  cd_config="$HOME/.config/Claude/claude_desktop_config.json" ;;
+        *)      cd_config="" ;;
+    esac
+
+    if [[ -n "$cd_config" && -f "$cd_config" ]]; then
+        python3 -c "
+import json, sys
+
+config_path = sys.argv[1]
+with open(config_path) as f:
+    config = json.load(f)
+
+if 'mcpServers' in config and 'youtube-transcript' in config['mcpServers']:
+    del config['mcpServers']['youtube-transcript']
+    with open(config_path, 'w') as f:
+        json.dump(config, f, indent=2)
+        f.write('\n')
+    print('  ✓ Removed youtube-transcript from Claude Desktop config')
+else:
+    print('  · No youtube-transcript MCP server found in Claude Desktop config')
+" "$cd_config"
+    fi
+
+    # Remove generated zip
+    zip_path="$SKILL_DIR/youtube-summarizer-chat.zip"
+    if [[ -f "$zip_path" ]]; then
+        rm "$zip_path"
+        green "  ✓ Removed $zip_path"
+    fi
+
+    echo ""
+    yellow "  ↻ Restart Claude Code / Claude Desktop to apply changes."
+    yellow "  Note: You'll need to manually remove the zip from Claude Desktop (Customize → Skill) if uploaded."
+    echo ""
+    green "Done!"
+    exit 0
+fi
+
+# ── Interactive selection if no flags ──────────────────
+if ! $do_cc && ! $do_cd; then
+    echo "Select what to install (space-separated, e.g. 1 2):"
+    echo ""
+    echo "  1) Claude Code         — skill symlink"
+    echo "  2) Claude Desktop Chat — MCP server + zip for Chat tab"
+    echo ""
+    printf "Choice: "
+    read -r choices
+    for c in $choices; do
+        case "$c" in
+            1) do_cc=true ;;
+            2) do_cd=true ;;
+            *) red "Unknown choice: $c"; exit 1 ;;
+        esac
+    done
+    if ! $do_cc && ! $do_cd; then
+        red "No selection made."
+        exit 1
+    fi
+fi
 
 # ── Prerequisites ───────────────────────────────────────
 if ! command -v uv &>/dev/null; then
@@ -75,7 +151,7 @@ if $do_cc; then
     yellow "  ↻ Restart Claude Code to pick up the skill."
 fi
 
-# ── Claude Desktop MCP server ──────────────────────────
+# ── Claude Desktop Chat tab (MCP server + zip) ────────
 if $do_cd; then
     echo ""
     echo "▸ Claude Desktop MCP server"
@@ -116,21 +192,14 @@ print(f'  Updated: {config_path}')
 " "$cd_config" "$script_path"
 
     green "  ✓ MCP server 'youtube-transcript' configured"
-    yellow "  ↻ Restart Claude Desktop to pick up the MCP server."
-fi
 
-# ── Chat tab zip ────────────────────────────────────────
-if $do_zip; then
     echo ""
     echo "▸ Claude Desktop Chat tab zip"
     zip_path="$SKILL_DIR/youtube-summarizer-chat.zip"
     (cd "$SKILL_DIR" && zip -j "$zip_path" SKILL.md) >/dev/null
     green "  ✓ Created $zip_path"
-    echo "  Upload instructions:"
-    echo "    1. Open Claude Desktop → Chat tab"
-    echo "    2. Open or create a Project"
-    echo "    3. Add the zip to the project knowledge"
-    echo "    4. The MCP server (--claude-desktop) is also needed for full functionality"
+    yellow "  Upload this zip to Claude Desktop via Customize → Skill."
+    yellow "  ↻ Restart Claude Desktop to pick up the MCP server."
 fi
 
 echo ""

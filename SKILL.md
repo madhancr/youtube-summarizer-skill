@@ -1,9 +1,10 @@
 ---
 name: youtube-summarizer
 description: >
-  Transcribe, summarize, and research YouTube videos. Two modes:
-  (1) Summarize: trigger on "sum <url>", "summarize <url>", "tldr <url>", "what's this video about <url>", or any YouTube URL with a summary request.
-  (2) Research: trigger on "re <url>", "research <url>", or any YouTube URL with a research/deep-dive request.
+  Transcribe, summarize, and research YouTube videos. Read the full skill instructions before taking any action — they contain specific output formats, link extraction rules (including constructing URLs from verbal mentions in transcripts), and link filtering logic that cannot be guessed.
+  Two modes:
+  (1) Summarize: trigger on "sum URL", "summarize URL", "tldr URL", "what's this video about URL", any YouTube URL with a summary request, or a bare YouTube URL with no other instructions.
+  (2) Research: trigger on "re URL", "research URL", or any YouTube URL with a research/deep-dive request.
   Do not activate for non-YouTube URLs or general summarization without a YouTube link.
 ---
 
