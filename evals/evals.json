@@ -1,0 +1,113 @@
+{
+  "skill_name": "youtube-summarizer",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "sum https://youtu.be/YmlqTB7EJy8",
+      "expected_output": "Summary of OpenClaw + World Monitor automated news research video. Links section MUST include https://github.com/koala73/worldmonitor (discussed extensively in transcript as the repo the agent clones and studies). Links MUST also include worldmonitor.app. Links must NOT include creator's social media, Patreon, or Discord links.",
+      "assertions": [
+        {
+          "name": "includes_github_repo_from_transcript",
+          "type": "contains",
+          "value": "github.com/koala73/worldmonitor",
+          "description": "The GitHub repo is mentioned verbally in the transcript — the skill must extract it even if it only appears in speech, not the description"
+        },
+        {
+          "name": "includes_worldmonitor_app",
+          "type": "contains",
+          "value": "worldmonitor.app",
+          "description": "The project homepage should appear in links"
+        },
+        {
+          "name": "has_links_section",
+          "type": "contains",
+          "value": "Links",
+          "description": "Output must have a Links section at the bottom"
+        },
+        {
+          "name": "no_patreon_links",
+          "type": "not_contains",
+          "value": "patreon.com",
+          "description": "Promotional links should be filtered out"
+        },
+        {
+          "name": "no_discord_links",
+          "type": "not_contains",
+          "value": "discord.gg",
+          "description": "Community invite links should be filtered out"
+        },
+        {
+          "name": "has_tldr",
+          "type": "contains",
+          "value": "TL;DR",
+          "description": "Summary must include a TL;DR section"
+        },
+        {
+          "name": "has_key_takeaways",
+          "type": "contains",
+          "value": "Key takeaways",
+          "description": "Summary must include key takeaways"
+        }
+      ],
+      "files": []
+    },
+    {
+      "id": 2,
+      "prompt": "re https://youtu.be/YmlqTB7EJy8",
+      "expected_output": "Research report that visits GitHub repo and worldmonitor.app. Should include repo details (stars, description, language) from actually visiting the link. Must have Projects & tools discussed section with details from the visited pages.",
+      "assertions": [
+        {
+          "name": "includes_github_repo",
+          "type": "contains",
+          "value": "github.com/koala73/worldmonitor",
+          "description": "Research mode must find and include the GitHub repo"
+        },
+        {
+          "name": "has_projects_section",
+          "type": "contains",
+          "value": "Projects",
+          "description": "Research report must have a Projects & tools discussed section"
+        },
+        {
+          "name": "has_research_report_header",
+          "type": "contains",
+          "value": "Research Report",
+          "description": "Output should be labeled as a Research Report"
+        },
+        {
+          "name": "visited_repo_details",
+          "type": "regex",
+          "value": "(star|fork|TypeScript|README|description)",
+          "description": "Research mode should show evidence of actually visiting the GitHub repo (stars, language, README details)"
+        }
+      ],
+      "files": []
+    },
+    {
+      "id": 3,
+      "prompt": "summarize https://youtu.be/YmlqTB7EJy8 what tools does he use?",
+      "expected_output": "Summary focused on the tools discussed: OpenClaw, Claude Code, World Monitor, Obsidian, GitHub. Links should include relevant project pages. Should answer the specific question about tools while providing a full summary.",
+      "assertions": [
+        {
+          "name": "mentions_openclaw",
+          "type": "contains",
+          "value": "OpenClaw",
+          "description": "Must mention OpenClaw as a key tool"
+        },
+        {
+          "name": "mentions_world_monitor",
+          "type": "contains",
+          "value": "World Monitor",
+          "description": "Must mention World Monitor as a key tool"
+        },
+        {
+          "name": "includes_github_link",
+          "type": "contains",
+          "value": "github.com",
+          "description": "Should include at least one GitHub link for the tools discussed"
+        }
+      ],
+      "files": []
+    }
+  ]
+}
