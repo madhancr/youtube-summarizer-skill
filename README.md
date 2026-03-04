@@ -19,7 +19,7 @@ curl -LsSf https://astral.sh/uv/install.sh | sh
 ## Quick Install
 
 ```bash
-git clone https://github.com/maddyonline/youtube-summarizer.git
+git clone https://github.com/madhancr/youtube-summarizer.git
 cd youtube-summarizer
 ./install.sh
 ```
