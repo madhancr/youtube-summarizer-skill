@@ -122,9 +122,21 @@ fi
 
 # ── Prerequisites ───────────────────────────────────────
 if ! command -v uv &>/dev/null; then
-    red "Error: 'uv' is not installed."
-    echo "Install it with:  curl -LsSf https://astral.sh/uv/install.sh | sh"
-    exit 1
+    # Check if uv exists in ~/.local/bin but isn't on PATH
+    if [[ -x "$HOME/.local/bin/uv" ]]; then
+        export PATH="$HOME/.local/bin:$PATH"
+        yellow "Found uv at ~/.local/bin/uv — added to PATH."
+    else
+        echo "uv is not installed. Installing now…"
+        curl -LsSf https://astral.sh/uv/install.sh | sh
+        export PATH="$HOME/.local/bin:$PATH"
+        if command -v uv &>/dev/null; then
+            green "✓ uv installed successfully ($(uv --version))"
+        else
+            red "Error: uv installation failed. Install manually: https://docs.astral.sh/uv/"
+            exit 1
+        fi
+    fi
 fi
 
 # ── Claude Code skill ──────────────────────────────────
