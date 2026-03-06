@@ -49,18 +49,18 @@ DESCRIPTION: <video description>
 - 3-5 bullet points of the most important insights
 
 **Links**
-Collect links from BOTH the DESCRIPTION and transcript. Crucially, scan the transcript for any resource the speaker discusses — projects, repos, libraries, tools, research papers, blog posts, websites, datasets. Speakers often mention these by name without spelling out a URL. Construct the likely URL: GitHub repos (`https://github.com/<org>/<project>`), project homepages (`<project>.com` or `<project>.app`), arXiv papers (`https://arxiv.org/abs/<id>`), or search for the resource to find the correct URL. For example, if the speaker discusses "the World Monitor project and their GitHub repo", include both `https://worldmonitor.app` and `https://github.com/koala73/worldmonitor`. See link rules below. List only if useful links exist.
-- [Link title](url) — one-line description of what it is
+Collect candidate links from BOTH the DESCRIPTION and transcript. Scan the transcript for any resource the speaker discusses — projects, repos, libraries, tools, research papers, blog posts, websites, datasets. Speakers often mention these by name without spelling out a URL. Construct candidate URLs, then **verify all of them using the link verification step below** before including them. See link rules and link verification sections below. List only if verified useful links exist.
+- [Link title](verified url) — one-line description of what it is
 
 ---
 
 ## Step 3B: Research mode
 
-### 1. Extract links
+### 1. Extract and verify links
 
-Collect links from BOTH the description and transcript (see link rules below). Also scan the transcript for any resource discussed — projects, repos, libraries, tools, research papers, blog posts, websites, datasets. Construct likely URLs (GitHub repos, project homepages, arXiv papers, etc.) or search for them to find the correct link.
+Collect candidate links from BOTH the description and transcript (see link rules below). Also scan the transcript for any resource discussed — projects, repos, libraries, tools, research papers, blog posts, websites, datasets. Construct candidate URLs, then **run the link verification step** (see below) to confirm/correct all URLs before proceeding.
 
-### 2. Visit all extracted links
+### 2. Visit all verified links
 
 For each useful link found, fetch it and extract:
 - **GitHub repos**: repo description, star count, what it does, key features from README
@@ -87,7 +87,7 @@ For each project/tool mentioned:
 - 5-8 bullet points combining insights from the video AND the linked resources
 
 **Links & resources**
-- [Link title](url) — one-line description
+- [Link title](verified url) — one-line description
 
 ---
 
@@ -120,3 +120,31 @@ These transcript-derived links are just as important as description links — do
 - Discord/community invite links
 
 **When in doubt:** If a link is to the creator promoting their own service/product rather than a technical resource discussed in the video, ignore it. Always look past the marketing — extract the substance.
+
+## Link verification (MANDATORY — apply to BOTH modes)
+
+**Why this step exists:** YouTube auto-captions mangle URLs — punctuation is stripped, words are split or merged, plurals change (e.g., "skills.sh" becomes "skill sh", "shellgame.co" becomes "shell game"). Constructing URLs from transcript text alone produces broken links. Every link MUST be verified before inclusion.
+
+After extracting all candidate links from the description and transcript, spawn a **single subagent** (using the Agent tool) to verify and correct them in one batch. The subagent should:
+
+1. **Receive** the full list of candidate links along with the context of how each was mentioned (e.g., "speaker said 'skill sh' — community skill directory with Snyk trust badges").
+2. **For each candidate link:**
+   - Use WebSearch to find the correct URL by searching for the project/resource name + key context from the transcript.
+   - Use WebFetch to confirm the found URL resolves and matches the described resource (not a parked domain, 404, or unrelated site).
+   - If the candidate URL is wrong, replace it with the verified correct one.
+   - If no valid URL can be found after searching, drop the link entirely rather than including a broken one.
+3. **Return** the verified link list with corrected URLs and brief descriptions.
+
+**Subagent prompt template:**
+```
+Verify and correct these links extracted from a YouTube video transcript. For each link:
+1. Search the web to find the correct URL (transcript captions often mangle domain names).
+2. Fetch the URL to confirm it resolves and matches the description.
+3. Return the corrected list. Drop any link that can't be verified.
+
+Candidate links:
+- [candidate URL or name] — context: [how it was mentioned in the video]
+...
+```
+
+**Important:** Do NOT skip verification even if a URL "looks right." Parked domains, typosquatted names, and stale URLs are common. The subagent step is mandatory, not optional.

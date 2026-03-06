@@ -108,6 +108,68 @@
         }
       ],
       "files": []
+    },
+    {
+      "id": 4,
+      "prompt": "summarize https://youtu.be/iXAgtR-DO3I",
+      "expected_output": "Summary of IBM Mixture of Experts podcast covering Perplexity Computer, Claude memory import, NullClaw agent framework, and Tilly Norwood AI actor. Links must be VERIFIED — transcript says 'skill sh' but the correct URL is skills.sh (not skill.sh which is a parked domain). Shell Game podcast URL must resolve (shellgame.co, not theshellgame.org which doesn't exist).",
+      "assertions": [
+        {
+          "name": "correct_skills_sh_url",
+          "type": "contains",
+          "value": "skills.sh",
+          "description": "Transcript says 'skill sh' but correct URL is skills.sh (plural) — tests that link verification corrects mangled transcript URLs"
+        },
+        {
+          "name": "no_parked_skill_sh",
+          "type": "not_contains",
+          "value": "skill.sh)",
+          "description": "skill.sh (singular) is a parked domain — must not appear as a link. Uses trailing ) to match markdown link format [text](skill.sh)"
+        },
+        {
+          "name": "no_dead_shellgame_org",
+          "type": "not_contains",
+          "value": "theshellgame.org",
+          "description": "theshellgame.org does not resolve — link verification must catch this"
+        },
+        {
+          "name": "correct_shellgame_url",
+          "type": "contains",
+          "value": "shellgame.co",
+          "description": "The Shell Game podcast lives at shellgame.co — tests that verification finds the correct domain"
+        },
+        {
+          "name": "has_tldr",
+          "type": "contains",
+          "value": "TL;DR",
+          "description": "Summary must include a TL;DR section"
+        },
+        {
+          "name": "has_key_takeaways",
+          "type": "contains",
+          "value": "Key takeaways",
+          "description": "Summary must include key takeaways"
+        },
+        {
+          "name": "has_links_section",
+          "type": "contains",
+          "value": "Links",
+          "description": "Output must have a Links section"
+        },
+        {
+          "name": "mentions_nullclaw",
+          "type": "contains",
+          "value": "NullClaw",
+          "description": "Must mention NullClaw as a topic"
+        },
+        {
+          "name": "mentions_perplexity",
+          "type": "regex",
+          "value": "[Pp]erplexity",
+          "description": "Must mention Perplexity Computer as a topic"
+        }
+      ],
+      "files": []
     }
   ]
 }

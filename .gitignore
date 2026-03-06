@@ -2,3 +2,4 @@ __pycache__/
 *.pyc
 .uv/
 youtube-summarizer-chat.zip
+evals/results/
