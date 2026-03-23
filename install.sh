@@ -102,15 +102,15 @@ fi
 if ! $do_cc && ! $do_cd; then
     echo "Select what to install (space-separated, e.g. 1 2):"
     echo ""
-    echo "  1) Claude Code         — skill symlink"
-    echo "  2) Claude Desktop Chat — MCP server + zip for Chat tab"
+    echo "  1) Claude Desktop Chat — MCP server + zip for Chat tab"
+    echo "  2) Claude Code         — skill symlink"
     echo ""
     printf "Choice: "
     read -r choices
     for c in $choices; do
         case "$c" in
-            1) do_cc=true ;;
-            2) do_cd=true ;;
+            1) do_cd=true ;;
+            2) do_cc=true ;;
             *) red "Unknown choice: $c"; exit 1 ;;
         esac
     done
@@ -176,11 +176,16 @@ if $do_cd; then
 
     script_path="$SKILL_DIR/scripts/get_transcript.py"
 
+    # Resolve full path to uv — avoids architecture mismatches on Apple Silicon
+    # (x86_64 uv under Rosetta downloads wrong native packages)
+    uv_path="$(command -v uv)"
+
     python3 -c "
 import json, os, sys
 
 config_path = sys.argv[1]
 script_path = sys.argv[2]
+uv_path = sys.argv[3]
 
 # Read existing config or start fresh
 if os.path.exists(config_path):
@@ -192,7 +197,7 @@ else:
 
 config.setdefault('mcpServers', {})
 config['mcpServers']['youtube-transcript'] = {
-    'command': 'uv',
+    'command': uv_path,
     'args': ['run', script_path],
 }
 
@@ -201,7 +206,7 @@ with open(config_path, 'w') as f:
     f.write('\n')
 
 print(f'  Updated: {config_path}')
-" "$cd_config" "$script_path"
+" "$cd_config" "$script_path" "$uv_path"
 
     green "  ✓ MCP server 'youtube-transcript' configured"
 
